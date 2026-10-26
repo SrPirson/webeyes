@@ -56,7 +56,7 @@ def _mmss(sec: float) -> str:
 
 
 def _ffmpeg_duration(video: Path) -> float:
-    r = subprocess.run([FFMPEG, "-i", str(video)], capture_output=True, text=True)
+    r = subprocess.run([FFMPEG, "-i", str(video)], capture_output=True, stdin=subprocess.DEVNULL, text=True)
     m = re.search(r"Duration: (\d+):(\d+):([\d.]+)", r.stderr)
     return int(m[1]) * 3600 + int(m[2]) * 60 + float(m[3]) if m else 0.0
 
@@ -124,11 +124,11 @@ def _transcript(folder: Path, video: Path, transcribe: bool) -> str:
         # Whisper runs as its own uv script so the server starts fast; its deps install on first use
         uv = os.environ.get("UV") or shutil.which("uv") or "uv"
         wav = folder / "audio.wav"
-        subprocess.run([FFMPEG, "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", "-y", str(wav)], capture_output=True)
+        subprocess.run([FFMPEG, "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", "-y", str(wav)], capture_output=True, stdin=subprocess.DEVNULL)
         try:
             # UTF-8 both ways: on Windows the default code page breaks on accents and emoji
             r = subprocess.run([uv, "run", "--script", str(HERE / "transcribe.py"), str(wav), WHISPER_MODEL],
-                               capture_output=True, encoding="utf-8", errors="replace",
+                               capture_output=True, stdin=subprocess.DEVNULL, encoding="utf-8", errors="replace",
                                env={**os.environ, "PYTHONUTF8": "1"}, timeout=1500)
         except subprocess.TimeoutExpired:
             return "(no transcript: whisper took more than 25 min; call again with transcribe=false)"
@@ -147,7 +147,7 @@ def _frames(video: Path, start: float, end: float, n: int, width: int, folder: P
         if not img.exists():
             subprocess.run([FFMPEG, "-ss", f"{t:.2f}", "-i", str(video), "-frames:v", "1",
                             "-vf", f"scale='min({width},iw)':-2", "-q:v", "4", "-y", str(img)],
-                           capture_output=True)
+                           capture_output=True, stdin=subprocess.DEVNULL)
         if img.exists():
             out.append((t, img))
     return out
