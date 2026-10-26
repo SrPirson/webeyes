@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "webeyes": {
+      "command": "uv",
+      "args": ["run", "--quiet", "--script", "${CLAUDE_PLUGIN_ROOT}/webeyes.py"],
+      "env": {
+        "WEBEYES_COOKIES_BROWSER": "${user_config.cookies_browser}",
+        "WEBEYES_WHISPER_MODEL": "${user_config.whisper_model}"
+      }
+    }
+  }
+}

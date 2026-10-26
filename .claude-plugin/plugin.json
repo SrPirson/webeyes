@@ -1,0 +1,28 @@
+{
+  "name": "webeyes",
+  "version": "0.1.0",
+  "description": "Lets Claude Code watch videos: YouTube, TikTok, Instagram reels, X, Twitch, Vimeo and 1000+ sites. Transcript with timestamps plus frames.",
+  "author": {
+    "name": "SrPirson",
+    "url": "https://github.com/SrPirson"
+  },
+  "homepage": "https://github.com/SrPirson/webeyes",
+  "repository": "https://github.com/SrPirson/webeyes",
+  "license": "MIT",
+  "keywords": ["video", "youtube", "tiktok", "instagram", "reels", "transcript", "whisper", "mcp"],
+  "userConfig": {
+    "cookies_browser": {
+      "type": "string",
+      "title": "Cookies browser",
+      "description": "Optional. Browser whose logged-in session is used for posts that need login (Instagram, TikTok): chrome, firefox, edge, brave, chromium, safari. Empty = no cookies.",
+      "default": ""
+    },
+    "whisper_model": {
+      "type": "string",
+      "title": "Whisper model",
+      "description": "Speech-to-text model for videos without subtitles. Bigger is more accurate and slower.",
+      "default": "small",
+      "options": ["tiny", "base", "small", "medium"]
+    }
+  }
+}

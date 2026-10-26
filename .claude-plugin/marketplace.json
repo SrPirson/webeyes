@@ -1,0 +1,17 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "webeyes",
+  "description": "webeyes: let Claude Code watch videos from YouTube, TikTok, Instagram and more.",
+  "owner": {
+    "name": "SrPirson",
+    "url": "https://github.com/SrPirson"
+  },
+  "plugins": [
+    {
+      "name": "webeyes",
+      "description": "Lets Claude Code watch videos: transcript with timestamps plus frames, from YouTube, TikTok, Instagram reels and 1000+ sites.",
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
