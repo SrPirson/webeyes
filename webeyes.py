@@ -78,7 +78,7 @@ def _read_vtt(path: Path) -> str:
 def _download(url: str, folder: Path) -> dict:
     info_path = folder / "info.json"
     if info_path.exists() and _video_file(folder):
-        return json.loads(info_path.read_text())
+        return json.loads(info_path.read_text(encoding="utf-8"))
 
     base = {
         "outtmpl": str(folder / "video.%(ext)s"),
@@ -103,7 +103,7 @@ def _download(url: str, folder: Path) -> dict:
 
     data = {k: info.get(k) for k in ("title", "uploader", "duration", "upload_date",
                                      "view_count", "like_count", "description", "webpage_url")}
-    info_path.write_text(json.dumps(data, ensure_ascii=False))
+    info_path.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     return data
 
 
@@ -114,7 +114,7 @@ def _video_file(folder: Path) -> Path | None:
 def _transcript(folder: Path, video: Path, transcribe: bool) -> str:
     cache = folder / "transcript.txt"
     if cache.exists():
-        return cache.read_text()
+        return cache.read_text(encoding="utf-8")
     subs = sorted(folder.glob("video.*.vtt"), key=lambda p: (".es" not in p.name, p.name))
     if subs:
         text = "(platform subtitles)\n" + _read_vtt(subs[0])
@@ -123,12 +123,19 @@ def _transcript(folder: Path, video: Path, transcribe: bool) -> str:
     else:
         # Whisper runs as its own uv script so the server starts fast; its deps install on first use
         uv = os.environ.get("UV") or shutil.which("uv") or "uv"
-        r = subprocess.run([uv, "run", "--script", str(HERE / "transcribe.py"), str(video), WHISPER_MODEL],
-                           capture_output=True, text=True)
+        wav = folder / "audio.wav"
+        subprocess.run([FFMPEG, "-i", str(video), "-vn", "-ac", "1", "-ar", "16000", "-y", str(wav)], capture_output=True)
+        try:
+            # UTF-8 both ways: on Windows the default code page breaks on accents and emoji
+            r = subprocess.run([uv, "run", "--script", str(HERE / "transcribe.py"), str(wav), WHISPER_MODEL],
+                               capture_output=True, encoding="utf-8", errors="replace",
+                               env={**os.environ, "PYTHONUTF8": "1"}, timeout=1500)
+        except subprocess.TimeoutExpired:
+            return "(no transcript: whisper took more than 25 min; call again with transcribe=false)"
         if r.returncode:
             return f"(no transcript: {r.stderr.strip().splitlines()[-1] if r.stderr.strip() else 'whisper failed'})"
         text = r.stdout.strip()
-    cache.write_text(text)
+    cache.write_text(text, encoding="utf-8")
     return text
 
 
